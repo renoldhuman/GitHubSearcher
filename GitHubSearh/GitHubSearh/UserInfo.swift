@@ -64,16 +64,11 @@ class UserInfo: UIView {
     }
     
     private func setDate(using date: String?) {
-        if let unformattedDate = date{
-            let dateFormatter = DateFormatter();
-            dateFormatter.dateStyle = .medium;
-            dateFormatter.timeStyle = .none;
-            if let formattedDate = dateFormatter.date(from: unformattedDate) {
-                joinDate.text = dateFormatter.string(from: formattedDate);
-            }
-            else {
-                joinDate.text = "Creation Date: ---";
-            }
+        if let dateString = date {
+            joinDate.text = dateString;
+        }
+        else {
+            joinDate.text = "Creation Date: ---"
         }
     }
 }

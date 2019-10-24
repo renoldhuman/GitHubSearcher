@@ -51,6 +51,7 @@ struct GitHubUser: Decodable {
         case followingCount = "following"
         case reposCount = "public_repos"
         case reposUrl = "repos_url"
+        case bio = "bio"
     }
     
 }
