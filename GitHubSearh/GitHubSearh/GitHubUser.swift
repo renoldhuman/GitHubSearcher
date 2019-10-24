@@ -39,6 +39,7 @@ struct GitHubUser: Decodable {
     var followingCount: Int?;
     var reposCount: Int?;
     var reposUrl: String?;
+    var avatar: Data?;
 
     enum CodingKeys: String, CodingKey {
         case username = "login"

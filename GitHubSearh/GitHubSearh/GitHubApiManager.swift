@@ -9,14 +9,15 @@
 import Foundation
 
 protocol GitHubApiProtocol : class {
-    func usersReceived(data: Data);
+    func usernamesReceived(data: Data);
+    func userReceived(data: Data);
 }
 
 class GitHubApiManager {
     
     weak var apiDelegate: GitHubApiProtocol?;
     
-    public func fetchUsers(with query: String) {
+    public func fetchUsernames(with query: String) {
         let url: URL = URL(string: "https://api.github.com/search/users?q=\(query)")!;
         
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
@@ -29,14 +30,14 @@ class GitHubApiManager {
             }
             
             if let data = data {
-                self.apiDelegate?.usersReceived(data: data);
+                self.apiDelegate?.usernamesReceived(data: data);
             }
         }
 
         task.resume();
     }
     
-    public func fetchUser(with username: String,  completionHandler: @escaping (_ data: Data) -> Void) {
+    public func fetchUser(with username: String) {
         let append = username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "";
         let url: URL = URL(string: "https://api.github.com/users/\(append)")!;
         
@@ -50,7 +51,7 @@ class GitHubApiManager {
             }
             
             if let data = data {
-                completionHandler(data);
+                self.apiDelegate?.userReceived(data: data);
             }
         }
 

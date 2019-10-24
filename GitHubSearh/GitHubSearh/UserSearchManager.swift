@@ -14,7 +14,7 @@ class UserSearchManager: UITableViewController {
     @IBOutlet weak var userSearchBar: UISearchBar!
     
     var gitHubApiManager: GitHubApiManager!;
-    var users: [GitHubUser]?;
+    var users: [String : GitHubUser];
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -66,28 +66,45 @@ class UserSearchManager: UITableViewController {
 
 extension UserSearchManager : UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        gitHubApiManager.fetchUsers(with: searchText);
+        gitHubApiManager.fetchUsernames(with: searchText);
     }
 }
 
 extension UserSearchManager: GitHubApiProtocol {
-    func usersReceived(data: Data) {
-        self.users = parseUsernames(data: data);
+    func usernamesReceived(data: Data) {
+        parseUsernames(data: data);
+        DispatchQueue.main.async {
+            self.tableView.reloadData();
+        }
+        
+        for username in self.users.keys {
+            gitHubApiManager.fetchUser(with: username);
+        }
+    }
+    
+    func userReceived(data: Data) {
+        if let user = parseUser(data: data) {
+            users[user.username] = user;
+        }
+        
         DispatchQueue.main.async {
             self.tableView.reloadData();
         }
     }
     
-    private func parseUsernames(data: Data) -> [GitHubUser] {
+    private func parseUsernames(data: Data) {
         let decoder = JSONDecoder();
         do {
-            let users = try decoder.decode(GitHubUsersPacket.self, from: data);
-            return users.usernames ?? [GitHubUser]();
+            users = [:];
+            let packet = try decoder.decode(GitHubUsersPacket.self, from: data);
+            if let users = packet.usernames {
+                for user in users {
+                    self.users[user.username] = user;
+                }
+            }
         } catch {
             print(error);
         }
-        
-        return [GitHubUser]();
     }
     
     private func parseUser(data: Data) -> GitHubUser? {
