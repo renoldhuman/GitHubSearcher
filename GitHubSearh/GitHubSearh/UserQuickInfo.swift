@@ -33,5 +33,15 @@ class UserQuickInfo : UIView {
         containingView.frame = self.bounds;
         containingView.autoresizingMask = [.flexibleHeight, .flexibleWidth];
     }
+    
+    func setView(from user: GitHubUser) {
+        if let userAvatar = user.avatar, let image = UIImage(data: userAvatar) {
+            avatar.image = image;
+        }
+
+        username.text = user.username;
+
+        repoCount.text = "Repos:\(user.reposCount ?? 0)"
+    }
 
 }

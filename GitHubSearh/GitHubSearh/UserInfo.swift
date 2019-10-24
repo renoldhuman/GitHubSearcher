@@ -48,15 +48,15 @@ class UserInfo: UIView {
         setDate(using: userInfo.joinDate);
         
         username.text = userInfo.username;
-        email.text = userInfo.email ?? "No Email";
-        location.text = userInfo.location ?? "No Location";
+        email.text = userInfo.email ?? "Email: ---";
+        location.text = userInfo.location ?? "Location: ---";
         followerCount.text = "\(userInfo.followerCount ?? 0) Followers";
         followingCount.text = "Following \(userInfo.followingCount ?? 0)";
         bio.text = userInfo.bio ?? "This user has no biography.";
     }
     
     private func setAvatar(using image: Data?) {
-        if let image = UIImage(data: image!) {
+        if let rawImageData = image, let image = UIImage(data: rawImageData) {
             DispatchQueue.main.async {
                 self.avatar.image = image;
             }
@@ -72,7 +72,7 @@ class UserInfo: UIView {
                 joinDate.text = dateFormatter.string(from: formattedDate);
             }
             else {
-                joinDate.text = "---";
+                joinDate.text = "Creation Date: ---";
             }
         }
     }
