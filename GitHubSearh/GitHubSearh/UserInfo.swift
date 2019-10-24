@@ -44,7 +44,7 @@ class UserInfo: UIView {
         guard let userInfo = userInfo else {
             return;
         }
-        setAvatar(using: userInfo.avatarUrl);
+        setAvatar(using: userInfo.avatar);
         setDate(using: userInfo.joinDate);
         
         username.text = userInfo.username;
@@ -52,16 +52,13 @@ class UserInfo: UIView {
         location.text = userInfo.location ?? "No Location";
         followerCount.text = "\(userInfo.followerCount ?? 0) Followers";
         followingCount.text = "Following \(userInfo.followingCount ?? 0)";
+        bio.text = userInfo.bio ?? "This user has no biography.";
     }
     
-    private func setAvatar(using imagePath: String) {
-        DispatchQueue.global().async { [weak self] in
-            if let url = URL(string: imagePath), let data = try? Data(contentsOf: url) {
-                if let image = UIImage(data: data) {
-                    DispatchQueue.main.async {
-                        self?.avatar.image = image;
-                    }
-                }
+    private func setAvatar(using image: Data?) {
+        if let image = UIImage(data: image!) {
+            DispatchQueue.main.async {
+                self.avatar.image = image;
             }
         }
     }
@@ -71,8 +68,12 @@ class UserInfo: UIView {
             let dateFormatter = DateFormatter();
             dateFormatter.dateStyle = .medium;
             dateFormatter.timeStyle = .none;
-            let formattedDate = dateFormatter.date(from: unformattedDate);
-            joinDate.text = dateFormatter.string(from: formattedDate!);
+            if let formattedDate = dateFormatter.date(from: unformattedDate) {
+                joinDate.text = dateFormatter.string(from: formattedDate);
+            }
+            else {
+                joinDate.text = "---";
+            }
         }
     }
 }
