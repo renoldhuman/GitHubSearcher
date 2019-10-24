@@ -17,6 +17,9 @@ class GitHubApiManager {
     
     weak var apiDelegate: GitHubApiProtocol?;
     
+    var usernames: [GitHubUser]?;
+    var users: [GitHubUser]?;
+    
     public func fetchUsernames(with query: String) {
         let url: URL = URL(string: "https://api.github.com/search/users?q=\(query)")!;
         
@@ -30,7 +33,13 @@ class GitHubApiManager {
             }
             
             if let data = data {
-                self.apiDelegate?.usernamesReceived(data: data);
+                self.parseUsernames(data: data);
+                if let validUsernames = self.usernames {
+                    for user in validUsernames {
+                        self.fetchUser(with: user.username);
+                    }
+                }
+                //self.apiDelegate?.usernamesReceived(data: data);
             }
         }
 
@@ -56,5 +65,15 @@ class GitHubApiManager {
         }
 
         task.resume();
+    }
+    
+    private func parseUsernames(data: Data) {
+        let decoder = JSONDecoder();
+        do {
+            let packet = try decoder.decode(GitHubUsersPacket.self, from: data);
+            self.usernames = packet.usernames;
+        } catch {
+            print(error);
+        }
     }
 }
