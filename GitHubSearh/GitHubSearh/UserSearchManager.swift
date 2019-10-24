@@ -10,7 +10,7 @@ import UIKit
 
 class UserSearchManager: UITableViewController {
 
-    private let API_RATE_LIMIT = true;
+    public static let API_RATE_LIMIT = true;
     
     @IBOutlet weak var userSearchBar: UISearchBar!
     
@@ -22,12 +22,12 @@ class UserSearchManager: UITableViewController {
         // Do any additional setup after loading the view.
         userSearchBar.delegate = self;
         
-        if (API_RATE_LIMIT) {
+        if (UserSearchManager.API_RATE_LIMIT) {
             return;
         }
         else {
             gitHubApiManager = GitHubApiManager();
-            gitHubApiManager.apiDelegate = self;
+            gitHubApiManager.userDataDelegate = self;
         }
     
     }
@@ -72,7 +72,7 @@ class UserSearchManager: UITableViewController {
 extension UserSearchManager : UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         users = [GitHubUser]();
-        if (API_RATE_LIMIT) {
+        if (UserSearchManager.API_RATE_LIMIT) {
             users = MockGitHubUser.getMockGitHubUsers(count: 20);
             self.tableView.reloadData();
         }
@@ -82,7 +82,7 @@ extension UserSearchManager : UISearchBarDelegate {
     }
 }
 
-extension UserSearchManager: GitHubApiProtocol {
+extension UserSearchManager: GitHubUserDataProtocol {
     func userReceived(inFull user: GitHubUser) {
         users.append(user);
         DispatchQueue.main.async {

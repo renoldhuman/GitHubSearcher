@@ -8,15 +8,22 @@
 
 import Foundation
 
-protocol GitHubApiProtocol : class {
-//    func usernamesReceived(data: Data);
-//    func userReceived(data: Data);
+// The GitHubApiManager needs to retain knowledge of the GitHubUser class due to the complexities of the strucure of the user data
+// In order to maintain a consistency this class also has knowledge of the GitHubRepository Class
+// A cleaner less rushed solution would potentially eliminate these necessities
+
+protocol GitHubUserDataProtocol : class {
     func userReceived(inFull user: GitHubUser);
+}
+
+protocol GitHubRepositoryDataProtocol: class {
+    func repositoriesReceived(with repos: [GitHubRepository]);
 }
 
 class GitHubApiManager {
     
-    weak var apiDelegate: GitHubApiProtocol?;
+    weak var userDataDelegate: GitHubUserDataProtocol?;
+    weak var repositoryDataDelegate: GitHubRepositoryDataProtocol?
     
     var usernames: [GitHubUser]?;
     
@@ -39,7 +46,6 @@ class GitHubApiManager {
                         self.fetchUser(with: user.username);
                     }
                 }
-                //self.apiDelegate?.usernamesReceived(data: data);
             }
         }
 
@@ -63,7 +69,6 @@ class GitHubApiManager {
                 if let user = self.parseUser(data: data) {
                     self.fetchImage(with: user);
                 }
-                //self.apiDelegate?.userReceived(data: data);
             }
         }
 
@@ -82,10 +87,10 @@ class GitHubApiManager {
                     return;
             }
             
-            if let data = data {
+            if let data = data, let delegate = self.userDataDelegate {
                 var userWithImage = user;
                 userWithImage.avatar = data;
-                self.apiDelegate?.userReceived(inFull: userWithImage);
+                delegate.userReceived(inFull: userWithImage);
             }
         }
         
@@ -112,5 +117,73 @@ class GitHubApiManager {
         }
         
         return nil;
+    }
+}
+
+extension GitHubApiManager {
+    public func fetchRepos(for username: String) {
+        let url: URL = URL(string: "https://api.github.com/users/\(username)/repos")!;
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            guard error == nil else{
+                return;
+            }
+            guard let httpResponse = response as? HTTPURLResponse,
+                (200...299).contains(httpResponse.statusCode) else {
+                    return;
+            }
+            
+            if let data = data, let delegate = self.repositoryDataDelegate {
+                delegate.repositoriesReceived(with: self.parseRepositories(data: data));
+            }
+        }
+
+        task.resume();
+    }
+    
+    public func fetchRepos(forUser username: String, with query: String) {
+        let url: URL = URL(string: "https://api.github.com/search/repositories?q=user:\(username)+\(query)")!
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            guard error == nil else{
+                return;
+            }
+            guard let httpResponse = response as? HTTPURLResponse,
+                (200...299).contains(httpResponse.statusCode) else {
+                    return;
+            }
+            
+            if let data = data, let delegate = self.repositoryDataDelegate {
+                delegate.repositoriesReceived(with: self.parseRepositoryPacket(data: data));
+            }
+        }
+
+        task.resume();
+    }
+    
+    private func parseRepositoryPacket(data: Data) -> [GitHubRepository] {
+        let decoder = JSONDecoder();
+        do {
+            let repositories = try decoder.decode(GitHubRepositoriesPacket.self, from: data);
+            return repositories.repositories ?? [GitHubRepository]();
+        }
+        catch {
+            print(error);
+        }
+        
+        return [GitHubRepository]();
+    }
+    
+    private func parseRepositories(data: Data) -> [GitHubRepository]{
+        let decoder = JSONDecoder();
+        do {
+            let repositories = try decoder.decode([GitHubRepository].self, from: data);
+            return repositories
+        }
+        catch {
+            print(error);
+        }
+        
+        return [GitHubRepository]();
     }
 }

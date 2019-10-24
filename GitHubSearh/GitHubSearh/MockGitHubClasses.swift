@@ -19,3 +19,13 @@ class MockGitHubUser {
     }
 }
 
+class MockGitHubRepository {
+    public static func getMockGitHubRepositories(count: Int) -> [GitHubRepository] {
+        return [GitHubRepository].init(repeating: getGitHubRepositoryMockUp(), count: count);
+    }
+    
+    public static func getGitHubRepositoryMockUp() -> GitHubRepository {
+        return GitHubRepository(repositoryUrl: "https://github.com/trustin/armeria", repositoryName: "armeria", forkCount: 2, starCount: 9)
+    }
+}
+
