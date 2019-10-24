@@ -11,7 +11,7 @@ import Foundation
 struct GitHubUsersPacket: Decodable {
     var count: Int;
     var status: Bool;
-    var usernames: [GitHubUsername]?;
+    var usernames: [GitHubUser]?;
     
     enum CodingKeys: String, CodingKey {
         case count = "total_count"

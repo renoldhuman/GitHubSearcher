@@ -5,7 +5,7 @@
 //  Created by Tyler Helmrich on 10/23/19.
 //  Copyright © 2019 Tyler Helmrich. All rights reserved.
 //
-
+import Foundation
 import UIKit
 
 class UserSearchManager: UITableViewController {
@@ -14,7 +14,7 @@ class UserSearchManager: UITableViewController {
     @IBOutlet weak var userSearchBar: UISearchBar!
     
     var gitHubApiManager: GitHubApiManager!;
-    var users: [GitHubUsername]?;
+    var users: [GitHubUser]?;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -71,11 +71,36 @@ extension UserSearchManager : UISearchBarDelegate {
 }
 
 extension UserSearchManager: GitHubApiProtocol {
-    func usersReceived(users: [GitHubUsername]) {
-        self.users = users;
+    func usersReceived(data: Data) {
+        self.users = parseUsernames(data: data);
         DispatchQueue.main.async {
             self.tableView.reloadData();
         }
     }
+    
+    private func parseUsernames(data: Data) -> [GitHubUser] {
+        let decoder = JSONDecoder();
+        do {
+            let users = try decoder.decode(GitHubUsersPacket.self, from: data);
+            return users.usernames ?? [GitHubUser]();
+        } catch {
+            print(error);
+        }
+        
+        return [GitHubUser]();
+    }
+    
+    private func parseUser(data: Data) -> GitHubUser? {
+        let decoder = JSONDecoder();
+        do {
+            let user = try decoder.decode(GitHubUser.self, from: data);
+            return user;
+        } catch {
+            print(error);
+        }
+        
+        return nil;
+    }
 }
+
 
